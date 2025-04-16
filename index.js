@@ -121,7 +121,7 @@ async function sendRandomMessages() {
     } catch (e) {
       console.error("❌ Error sending message:", e.message);
     }
-    await new Promise(r => setTimeout(r, Math.floor(Math.random() * 600000) + 300000)); // بين 5 و 15 دقيقة
+    await new Promise(r => setTimeout(r, Math.floor(Math.random() * 1000000) + 900000)); // بين 5 و 15 دقيقة
   }
 }
 
