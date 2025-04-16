@@ -1,6 +1,6 @@
-const express = require('express');
-const { Bot, webhookCallback } = require('grammy');
-const bodyParser = require('body-parser');
+import express from 'express';
+import { Bot, webhookCallback } from 'grammy';
+import bodyParser from 'body-parser';
 
 const app = express();
 const bot = new Bot("8027706435:AAEzWtCBhIZPSo66BsC2CALd9X9F5LUVLWo");
