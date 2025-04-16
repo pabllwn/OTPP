@@ -10,5 +10,4 @@
     "grammy": "^1.19.2",
     "body-parser": "^1.20.2"
   },
-  "type": "commonjs"  // تغيير هنا من "module" إلى "commonjs"
-}
+  "type": "commonjs"  }
