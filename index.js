@@ -13,7 +13,7 @@ const services = [
   "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"
 ];
 const names = [
-  "John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Amine",
+  "John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine",
   "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"
 ];
 const userSubscriptions = {};
@@ -136,6 +136,6 @@ app.get("/", (req, res) => {
 // تشغيل الخادم وبدء المهام
 app.listen(3000, async () => {
   console.log("Bot server running on port 3000");
-  await bot.api.setWebhook("https://bot-2-splv.onrender.com"); // غيّر الرابط لو عندك دومين ثاني
+  await bot.api.setWebhook("https://otpp-lkgy.onrender.com"); // غيّر الرابط لو عندك دومين ثاني
   sendRandomMessages();
 });
