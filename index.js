@@ -8,15 +8,22 @@ const bot = new Bot("8027706435:AAHjWx1KlikP46Ri1NGCTr-cWmZwXzZSoIg");
 const CHANNEL_ID = "@LAZARUS_OTP";
 const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
-const services = [
-  "Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pin", "Crypto",
-  "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"
-];
-const names = [
-  "John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine",
-  "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"
-];
 const userSubscriptions = {};
+const services = ["Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pin", "Crypto", "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"];
+const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine", "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"];
+
+const PRICES = {
+  "1 Week": 55,
+  "2 Weeks": 70,
+  "1 Month": 100,
+  "Lifetime": 550
+};
+
+const cryptoAddresses = {
+  BTC: "0x0caaf01430e30c73b01129f0b9c17be46abdc3f4",
+  LTC: "LSeoTPFsy3jhc42xmpquT3Du8TE15Kgq6v",
+  USDT: "TDrUjRERAdFkFgsXku8HwGg3LJDoynXygr"
+};
 
 function generateOtp() {
   return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
@@ -66,10 +73,74 @@ bot.command("start", async (ctx) => {
     reply_markup: {
       inline_keyboard: [
         [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
-        [{ text: "🛒 Purchase", url: `https://t.me/${ADMIN_USERNAME.replace('@', '')}` }]
+        [{ text: "🛒 Purchase", callback_data: "purchase" }]
       ]
     }
   });
+});
+
+bot.callbackQuery("purchase", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText("💵 Choose your subscription:\n\nFor payment via Binance, please contact: " + ADMIN_USERNAME, {
+    reply_markup: {
+      inline_keyboard: Object.keys(PRICES).map(label => [
+        { text: `💵 ${label} : $${PRICES[label]}`, callback_data: `sub_${label.replace(/\s+/g, "_")}` }
+      ])
+    }
+  });
+});
+
+bot.on("callback_query:data", async (ctx) => {
+  const data = ctx.callbackQuery.data;
+
+  if (data.startsWith("sub_")) {
+    const label = data.slice(4).replace(/_/g, " ");
+    const amount = PRICES[label];
+    await ctx.editMessageText(`✅ ${label} Subscription\n💵 Amount: $${amount}\n\nSelect your payment method:`, {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "₿ BTC", callback_data: `pay_BTC_${amount}` }],
+          [{ text: "Ł LTC", callback_data: `pay_LTC_${amount}` }],
+          [{ text: "₮ USDT", callback_data: `pay_USDT_${amount}` }]
+        ]
+      }
+    });
+  }
+
+  if (data.startsWith("pay_")) {
+    const [_, crypto, amount] = data.split("_");
+    const address = cryptoAddresses[crypto];
+
+    await ctx.editMessageText(
+      `💳 PAYMENT DETAILS\n━━━━━━━━━━━━━━━━━━━\n` +
+      `🪙 Crypto: ${crypto === "BTC" ? "Bitcoin" : crypto === "LTC" ? "Litecoin" : "Tether (USDT)"}\n` +
+      `💵 Amount (USD): $${amount}\n` +
+      `🏦 Wallet Address: \`${address}\`\n` +
+      `📤 You Send: ${crypto}\n` +
+      `💱 Rate: 1 USD = [CURRENT ${crypto} RATE]\n\n`, {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "📋 Copy Address", callback_data: `copy_${crypto}` }],
+            [{ text: "✅ I Paid", callback_data: `paid_${crypto}` }],
+            [{ text: "❌ Cancel", callback_data: "cancel_payment" }]
+          ]
+        }
+      }
+    );
+  }
+
+  if (data.startsWith("copy_")) {
+    await ctx.answerCallbackQuery({ text: "📋 Address copied!", show_alert: true });
+  }
+
+  if (data.startsWith("paid_")) {
+    await ctx.reply(`⚠️ We haven't received the payment yet.\nPlease contact support: ${ADMIN_USERNAME}`);
+  }
+
+  if (data === "cancel_payment") {
+    await ctx.editMessageText("❌ Payment process cancelled.");
+  }
 });
 
 bot.command("plan", (ctx) => {
@@ -108,7 +179,6 @@ bot.command("redeem", (ctx) => {
   }
 });
 
-// إرسال رسائل عشوائية للقناة
 async function sendRandomMessages() {
   while (true) {
     const service = services[Math.floor(Math.random() * services.length)];
@@ -121,11 +191,10 @@ async function sendRandomMessages() {
     } catch (e) {
       console.error("❌ Error sending message:", e.message);
     }
-    await new Promise(r => setTimeout(r, Math.floor(Math.random() * 1000000) + 900000)); // بين 5 و 15 دقيقة
+    await new Promise(r => setTimeout(r, Math.floor(Math.random() * 1000000) + 900000));
   }
 }
 
-// إعداد Webhook لـ Render
 app.use(bodyParser.json());
 app.use(webhookCallback(bot, "express"));
 
@@ -133,9 +202,8 @@ app.get("/", (req, res) => {
   res.send("Bot is running...");
 });
 
-// تشغيل الخادم وبدء المهام
 app.listen(3000, async () => {
   console.log("Bot server running on port 3000");
-  await bot.api.setWebhook("https://otpp-lkgy.onrender.com"); // غيّر الرابط لو عندك دومين ثاني
+  await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
   sendRandomMessages();
 });
