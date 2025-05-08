@@ -87,7 +87,7 @@ bot.command("start", async (ctx) => {
     reply_markup: {
       inline_keyboard: [
         [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
-        [{ text: "🛒 Purchase", callback_data: "purchase" }]
+        [{ text: "🛒 Purchase", url: "https://t.me/CKRACKING_MOROCCO" }]  // رابط إلى حسابك مباشرة
       ]
     }
   });
@@ -97,10 +97,10 @@ bot.callbackQuery("purchase", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply("🛒 Purchase your plan", {
     reply_markup: {
-      inline_keyboard: Object.keys(PRICES).map(label => [{
-        text: `💵 ${label} : $${PRICES[label]}`,
-        callback_data: `sub_${label.replace(/\s+/g, "_")}`
-      }])
+      inline_keyboard: [
+        [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
+        [{ text: "🛒 Purchase", url: "https://t.me/CKRACKING_MOROCCO" }]  // رابط إلى حسابك مباشرة
+      ]
     }
   });
 });
