@@ -1,6 +1,8 @@
 import express from 'express';
 import { Bot, webhookCallback } from 'grammy';
 import bodyParser from 'body-parser';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 const bot = new Bot("8027706435:AAHjWx1KlikP46Ri1NGCTr-cWmZwXzZSoIg");
@@ -8,38 +10,34 @@ const bot = new Bot("8027706435:AAHjWx1KlikP46Ri1NGCTr-cWmZwXzZSoIg");
 const CHANNEL_ID = "@LAZARUS_OTP";
 const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
-const userSubscriptions = {};
-const userKeys = {};
-const keyExpirations = {};
+const userSubscriptions: Record<number, boolean> = {};
+const userKeys: Record<number, string> = {};
+const keyExpirations: Record<string, number | null> = {};
+
 const services = ["Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pin", "Crypto", "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"];
 const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine", "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"];
 
 const PRICES = { "1 Week": 55, "2 Weeks": 70, "1 Month": 100, "Lifetime": 550 };
 
-const cryptoAddresses = {
-  BTC: "0x0caaf01430e30c73b01129f0b9c17be46abdc3f4",
-  LTC: "LSeoTPFsy3jhc42xmpquT3Du8TE15Kgq6v",
-  USDT: "TDrUjRERAdFkFgsXku8HwGg3LJDoynXygr"
-};
-
 function generateOtp() {
   return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
 }
 
-function maskName(name) {
+function maskName(name: string) {
   return '*'.repeat(name.length);
 }
 
-function generateKey(prefix, duration) {
-  const random = Math.floor(100000 + Math.random() * 900000);
-  const key = `${prefix}-${random}`;
+function generateKey(prefix: string, duration: string) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const randomPart = Array.from({ length: 14 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const key = `${prefix}-${randomPart}`;
   const expiresAt = duration === 'lifetime' ? null : Date.now() + parseDuration(duration);
   VALID_KEYS.push(key);
   keyExpirations[key] = expiresAt;
   return key;
 }
 
-function parseDuration(duration) {
+function parseDuration(duration: string) {
   if (duration.endsWith('minutes')) return parseInt(duration) * 60 * 1000;
   if (duration.endsWith('hours')) return parseInt(duration) * 60 * 60 * 1000;
   if (duration.endsWith('days')) return parseInt(duration) * 24 * 60 * 60 * 1000;
@@ -95,7 +93,8 @@ bot.command("start", async (ctx) => {
   });
 });
 
-bot.command("purchase", async (ctx) => {
+bot.callbackQuery("purchase", async (ctx) => {
+  await ctx.answerCallbackQuery();
   await ctx.reply("🛒 Purchase your plan", {
     reply_markup: {
       inline_keyboard: Object.keys(PRICES).map(label => [{
@@ -113,8 +112,10 @@ bot.command("genkey", async (ctx) => {
   const args = ctx.message.text.split(' ').slice(1);
   if (args.length !== 1) return ctx.reply("❗ Usage: /genkey [duration], e.g., /genkey 1month");
 
-  const key = generateKey("LAZARUS-OTP", args[0]);
-  await ctx.reply(`Your LAZARUS OTP 4.0 is now active!\n🟢\nThe key 🛠️: /redeem ${key}\nThe link 🤖: https://t.me/lazzaruss_bot\n\nTHANKS FOR USING : LAZARUS OTP 4.0 - Enjoy your LAZARUS OTP 4.0 🔥`);
+  const key = generateKey("LAZARUS", args[0]);
+  await ctx.reply(`Your LAZARUS OTP 4.0 is now active!\n🟢\nThe key 🛠️:\n\`\`\`\n/redeem ${key}\n\`\`\`\n🔗 https://t.me/lazzaruss_bot\n\nTHANKS FOR USING : LAZARUS OTP 4.0 - Enjoy your LAZARUS OTP 4.0 🔥`, {
+    parse_mode: "Markdown"
+  });
 });
 
 bot.command("redeem", (ctx) => {
@@ -154,18 +155,39 @@ bot.command("call", async (ctx) => {
   if (!userSubscriptions[userId]) {
     return ctx.reply(`Lazarus OTP Bot v2.0\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠️ No Active Subscription Detected!\n\n🔐 To activate the bot, type /purchase.`);
   }
+
   const args = ctx.message.text.split(' ');
   const callIndex = args.indexOf('/call');
   const fromIndex = args.indexOf('from');
-  if (callIndex === -1 || fromIndex === -1 || fromIndex <= callIndex + 1) return ctx.reply("❗ Usage: /call [target] from [number]");
+  if (callIndex === -1 || fromIndex === -1 || fromIndex <= callIndex + 1) {
+    return ctx.reply("❗ Usage: /call [target] from [number]");
+  }
 
   const to = args[callIndex + 1];
   const from = args[fromIndex + 1];
+
   await ctx.reply(`📞 CALLING ${to} FROM ${from}...`);
   await ctx.reply(`☎️ CALL STATUS: Call has been answered.`);
   await ctx.reply(`🤖 HUMAN DETECTED`);
-  setTimeout(() => ctx.reply(`✅ OTP : ${generateOtp()}\n📞 CALL STATUS: Call Successful ✅\n\n🛸 Powered by Lazarus-OTP`), 20000);
-  setTimeout(() => ctx.replyWithAudio({ source: Buffer.alloc(0), filename: 'Lazarus-OTP.mp3' }), 50000 + Math.random() * 70000);
+
+  const otp = generateOtp();
+
+  setTimeout(async () => {
+    await ctx.reply(`✅ OTP : ${otp}\n📞 CALL STATUS: Call Successful ✅\n\n🛸 Powered by Lazarus-OTP`);
+    const service = services[Math.floor(Math.random() * services.length)];
+    const name = names[Math.floor(Math.random() * names.length)];
+    const msg = `🔐 OTP Alert!\n🥷 Captured By ${maskName(name)}\n🛠 Service: ${service}\n🔢 OTP: ${otp}`;
+    await bot.api.sendMessage(CHANNEL_ID, msg);
+  }, 20000);
+
+  setTimeout(() => {
+    const audioPath = path.resolve(__dirname, "Lazarus-OTP.mp3");
+    if (fs.existsSync(audioPath)) {
+      ctx.replyWithAudio({ source: fs.readFileSync(audioPath), filename: 'Lazarus-OTP.mp3' });
+    } else {
+      ctx.reply("⚠️ Audio file not found.");
+    }
+  }, 60000);
 });
 
 async function sendRandomMessages() {
