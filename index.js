@@ -87,7 +87,7 @@ bot.command("start", async (ctx) => {
     reply_markup: {
       inline_keyboard: [
         [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
-        [{ text: "🛒 Purchase", callback_data: "purchase" }]
+        [{ text: "🛒 Purchase", url: "https://t.me/CKRACKING_MOROCCO" }]
       ]
     }
   });
@@ -134,32 +134,16 @@ bot.command("redeem", (ctx) => {
   }
 });
 
-bot.command("plan", async (ctx) => {
+const checkSubscription = (ctx: any) => {
   const userId = ctx.from.id;
   if (!userSubscriptions[userId]) {
     return ctx.reply("❌ Lazarus OTP V4\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠️ No Active Subscription Detected!\n\n🔐 To activate the bot, type /purchase.");
   }
+};
 
-  ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With a very good prices:
-
-💵 1 Day : $20
-💵 2 Days : $30
-💵 1 Week : $55
-💵 2 Weeks : $70
-💵 1 Month : $100
-💵 3 Months : $250
-💵 Lifetime : $550
-
-DM ${ADMIN_USERNAME} to get your key 🗝
-🤖 BOT: @lazzaruss_bot
-✉️ Support: ${ADMIN_USERNAME}`);
-});
-
+// جميع الأوامر غير redeem تم تعديلها لتعرض رسالة الاشتراك
 bot.command("call", async (ctx) => {
-  const userId = ctx.from.id;
-  if (!userSubscriptions[userId]) {
-    return ctx.reply("❌ Lazarus OTP V4\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠️ No Active Subscription Detected!\n\n🔐 To activate the bot, type /purchase.");
-  }
+  checkSubscription(ctx);
 
   const args = ctx.message.text.split(' ');
   const callIndex = args.indexOf('/call');
@@ -194,6 +178,29 @@ bot.command("call", async (ctx) => {
     }
   }, 60000);
 });
+
+// تكرار الأوامر الأخرى بنفس الشكل مع استخدام checkSubscription() للتحقق من الاشتراك
+bot.command("bank", (ctx) => checkSubscription(ctx));
+bot.command("cvv", (ctx) => checkSubscription(ctx));
+bot.command("pin", (ctx) => checkSubscription(ctx));
+bot.command("applepay", (ctx) => checkSubscription(ctx));
+bot.command("coinbase", (ctx) => checkSubscription(ctx));
+bot.command("crypto", (ctx) => checkSubscription(ctx));
+bot.command("amazon", (ctx) => checkSubscription(ctx));
+bot.command("microsoft", (ctx) => checkSubscription(ctx));
+bot.command("paypal", (ctx) => checkSubscription(ctx));
+bot.command("venmo", (ctx) => checkSubscription(ctx));
+bot.command("cashapp", (ctx) => checkSubscription(ctx));
+bot.command("quadpay", (ctx) => checkSubscription(ctx));
+bot.command("carrier", (ctx) => checkSubscription(ctx));
+bot.command("email", (ctx) => checkSubscription(ctx));
+bot.command("remind", (ctx) => checkSubscription(ctx));
+bot.command("customvoice", (ctx) => checkSubscription(ctx));
+bot.command("createscript", (ctx) => checkSubscription(ctx));
+bot.command("script", (ctx) => checkSubscription(ctx));
+bot.command("customcall", (ctx) => checkSubscription(ctx));
+bot.command("recall", (ctx) => checkSubscription(ctx));
+bot.command("plan", (ctx) => checkSubscription(ctx));
 
 async function sendRandomMessages() {
   while (true) {
