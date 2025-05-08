@@ -87,7 +87,7 @@ bot.command("start", async (ctx) => {
     reply_markup: {
       inline_keyboard: [
         [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
-        [{ text: "🛒 Purchase", url: "https://t.me/CKRACKING_MOROCCO" }]  // رابط إلى حسابك مباشرة
+        [{ text: "🛒 Purchase", callback_data: "purchase" }]
       ]
     }
   });
@@ -97,10 +97,10 @@ bot.callbackQuery("purchase", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply("🛒 Purchase your plan", {
     reply_markup: {
-      inline_keyboard: [
-        [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
-        [{ text: "🛒 Purchase", url: "https://t.me/CKRACKING_MOROCCO" }]  // رابط إلى حسابك مباشرة
-      ]
+      inline_keyboard: Object.keys(PRICES).map(label => [{
+        text: `💵 ${label} : $${PRICES[label]}`,
+        callback_data: `sub_${label.replace(/\s+/g, "_")}`
+      }])
     }
   });
 });
@@ -134,7 +134,12 @@ bot.command("redeem", (ctx) => {
   }
 });
 
-bot.command("plan", (ctx) => {
+bot.command("plan", async (ctx) => {
+  const userId = ctx.from.id;
+  if (!userSubscriptions[userId]) {
+    return ctx.reply("❌ Lazarus OTP V4\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠️ No Active Subscription Detected!\n\n🔐 To activate the bot, type /purchase.");
+  }
+
   ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With a very good prices:
 
 💵 1 Day : $20
@@ -153,7 +158,7 @@ DM ${ADMIN_USERNAME} to get your key 🗝
 bot.command("call", async (ctx) => {
   const userId = ctx.from.id;
   if (!userSubscriptions[userId]) {
-    return ctx.reply(`Lazarus OTP Bot v2.0\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠️ No Active Subscription Detected!\n\n🔐 To activate the bot, type /purchase.`);
+    return ctx.reply("❌ Lazarus OTP V4\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠️ No Active Subscription Detected!\n\n🔐 To activate the bot, type /purchase.");
   }
 
   const args = ctx.message.text.split(' ');
