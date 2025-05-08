@@ -5,14 +5,14 @@ import fs from 'fs';
 import path from 'path';
 
 const app = express();
-const bot = new Bot("8027706435:AAGyrnAum58yj34CjdbmXanQ2AW5RR95wgc");
+const bot = new Bot("8027706435:AAHjWx1KlikP46Ri1NGCTr-cWmZwXzZSoIg");
 
 const CHANNEL_ID = "@LAZARUS_OTP";
 const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
-const userSubscriptions: Record<number, boolean> = {};
-const userKeys: Record<number, string> = {};
-const keyExpirations: Record<string, number | null> = {};
+let userSubscriptions = {};  // تم إزالة الأنواع TypeScript هنا
+let userKeys = {};  // تم إزالة الأنواع TypeScript هنا
+let keyExpirations = {};  // تم إزالة الأنواع TypeScript هنا
 
 const services = ["Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pin", "Crypto", "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"];
 const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine", "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"];
@@ -23,11 +23,11 @@ function generateOtp() {
   return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
 }
 
-function maskName(name: string) {
+function maskName(name) {
   return '*'.repeat(name.length);
 }
 
-function generateKey(prefix: string, duration: string) {
+function generateKey(prefix, duration) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const randomPart = Array.from({ length: 14 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   const key = `${prefix}-${randomPart}`;
@@ -37,7 +37,7 @@ function generateKey(prefix: string, duration: string) {
   return key;
 }
 
-function parseDuration(duration: string) {
+function parseDuration(duration) {
   if (duration.endsWith('minutes')) return parseInt(duration) * 60 * 1000;
   if (duration.endsWith('hours')) return parseInt(duration) * 60 * 60 * 1000;
   if (duration.endsWith('days')) return parseInt(duration) * 24 * 60 * 60 * 1000;
@@ -87,7 +87,7 @@ bot.command("start", async (ctx) => {
     reply_markup: {
       inline_keyboard: [
         [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
-        [{ text: "🛒 Purchase", url: "https://t.me/CKRACKING_MOROCCO" }]
+        [{ text: "🛒 Purchase", callback_data: "purchase" }]
       ]
     }
   });
@@ -134,16 +134,27 @@ bot.command("redeem", (ctx) => {
   }
 });
 
-const checkSubscription = (ctx: any) => {
+bot.command("plan", (ctx) => {
+  ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With a very good prices:
+
+💵 1 Day : $20
+💵 2 Days : $30
+💵 1 Week : $55
+💵 2 Weeks : $70
+💵 1 Month : $100
+💵 3 Months : $250
+💵 Lifetime : $550
+
+DM ${ADMIN_USERNAME} to get your key 🗝
+🤖 BOT: @lazzaruss_bot
+✉️ Support: ${ADMIN_USERNAME}`);
+});
+
+bot.command("call", async (ctx) => {
   const userId = ctx.from.id;
   if (!userSubscriptions[userId]) {
-    return ctx.reply("❌ Lazarus OTP V4\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠️ No Active Subscription Detected!\n\n🔐 To activate the bot, type /purchase.");
+    return ctx.reply(`Lazarus OTP Bot v4.0\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠️ No Active Subscription Detected!\n\n🔐 To activate the bot, type /purchase.`);
   }
-};
-
-// جميع الأوامر غير redeem تم تعديلها لتعرض رسالة الاشتراك
-bot.command("call", async (ctx) => {
-  checkSubscription(ctx);
 
   const args = ctx.message.text.split(' ');
   const callIndex = args.indexOf('/call');
@@ -178,29 +189,6 @@ bot.command("call", async (ctx) => {
     }
   }, 60000);
 });
-
-// تكرار الأوامر الأخرى بنفس الشكل مع استخدام checkSubscription() للتحقق من الاشتراك
-bot.command("bank", (ctx) => checkSubscription(ctx));
-bot.command("cvv", (ctx) => checkSubscription(ctx));
-bot.command("pin", (ctx) => checkSubscription(ctx));
-bot.command("applepay", (ctx) => checkSubscription(ctx));
-bot.command("coinbase", (ctx) => checkSubscription(ctx));
-bot.command("crypto", (ctx) => checkSubscription(ctx));
-bot.command("amazon", (ctx) => checkSubscription(ctx));
-bot.command("microsoft", (ctx) => checkSubscription(ctx));
-bot.command("paypal", (ctx) => checkSubscription(ctx));
-bot.command("venmo", (ctx) => checkSubscription(ctx));
-bot.command("cashapp", (ctx) => checkSubscription(ctx));
-bot.command("quadpay", (ctx) => checkSubscription(ctx));
-bot.command("carrier", (ctx) => checkSubscription(ctx));
-bot.command("email", (ctx) => checkSubscription(ctx));
-bot.command("remind", (ctx) => checkSubscription(ctx));
-bot.command("customvoice", (ctx) => checkSubscription(ctx));
-bot.command("createscript", (ctx) => checkSubscription(ctx));
-bot.command("script", (ctx) => checkSubscription(ctx));
-bot.command("customcall", (ctx) => checkSubscription(ctx));
-bot.command("recall", (ctx) => checkSubscription(ctx));
-bot.command("plan", (ctx) => checkSubscription(ctx));
 
 async function sendRandomMessages() {
   while (true) {
