@@ -8,7 +8,7 @@ const app = express();
 const bot = new Bot("8027706435:AAGyrnAum58yj34CjdbmXanQ2AW5RR95wgc");
 
 const CHANNEL_ID = "@LAZARUS_OTP";
-const ADMIN_USERNAME = "@CKRACKING_MOROCCO";  // اسم المستخدم الخاص بالادمن
+const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
 let userSubscriptions = {};
 let userKeys = {};
@@ -18,6 +18,9 @@ const services = ["Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pi
 const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine", "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"];
 
 const PRICES = { "1 Week": 55, "2 Weeks": 70, "1 Month": 100, "Lifetime": 550 };
+
+// تحديد معرف المستخدم الخاص بك (أنت)
+const ADMIN_ID = 1602421561;  // استبدل هذا بمعرف المستخدم الخاص بك
 
 function generateOtp() {
   return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
@@ -157,26 +160,32 @@ bot.on('message', async (ctx) => {
   const userId = ctx.from.id;
   const text = ctx.message.text;
 
+  // إذا كان المستخدم هو المشرف (أنت)
+  if (userId === ADMIN_ID) {
+    // تنفيذ أوامر خاصة للمشرف مثل /send_paypal أو /genkey
+    if (text.startsWith('/send_paypal')) {
+      const otp = generateOtp();
+      await bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskName(ctx.from.username)}\n🛠 Service: PayPal\n🔢 OTP: ${otp}`);
+    }
+
+    if (text.startsWith('/genkey')) {
+      const [_, prefix, duration] = text.split(' ');
+      if (!prefix || !duration) {
+        return ctx.reply("❌ Usage: /genkey <prefix> <duration>");
+      }
+
+      const key = generateKey(prefix, duration);
+      return ctx.reply(`✅ Generated Key: ${key}`);
+    }
+
+    return;
+  }
+
+  // إذا لم يكن هناك اشتراك للمستخدم
   if (text !== "/redeem" && text !== "/purchase" && text !== "/email" && !userSubscriptions[userId]) {
     ctx.reply(`Lazarus OTP Bot v4.0\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠ No Active Subscription Detected!\n\n🔑 To activate the bot, type /purchase Or contact ${ADMIN_USERNAME}.`);
   } else {
-    // يمكنك إضافة معالجات أخرى هنا إذا أردت
-  }
-});
-
-// أمر /send_paypal الذي يمكن للمدير فقط استخدامه
-bot.command("send_paypal", async (ctx) => {
-  const userId = ctx.from.id;
-
-  // تحقق من أن المستخدم هو المسؤول فقط
-  if (ctx.from.username === ADMIN_USERNAME) {
-    const otp = generateOtp();
-    const maskedName = maskName("John Doe");  // تغيير الاسم هنا كما تريد
-
-    await bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskedName}\n🛠 Service: PayPal\n🔢 OTP: ${otp}`);
-    ctx.reply("✅ OTP PayPal message sent to the channel!");
-  } else {
-    ctx.reply("❌ You are not authorized to use this command.");
+    // يمكن إضافة معالجات أخرى هنا إذا أردت
   }
 });
 
