@@ -7,7 +7,7 @@ import path from 'path';
 const app = express();
 const bot = new Bot("8027706435:AAGyrnAum58yj34CjdbmXanQ2AW5RR95wgc");
 
-const CHANNEL_ID = "@LAZARUS_OTP";
+const CHANNEL_ID = "@LAZARUSOTP";
 const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
 let userSubscriptions = {};
@@ -86,7 +86,7 @@ bot.command("start", async (ctx) => {
   await ctx.reply(startMessage, {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
+        [{ text: "📢 Channel", url: "https://t.me/LAZARUSOTP" }],
         [{ text: "🛒 Purchase", callback_data: "purchase" }]
       ]
     }
@@ -182,7 +182,7 @@ setInterval(() => {
   const randomTime = randomInterval(); // تحديد الوقت العشوائي
   sendOtpAlert();  // إرسال الرسالة
   console.log(`تم إرسال الرسالة إلى القناة، سيتم الإرسال التالي بعد ${randomTime} دقيقة.`);
-}, randomInterval() * 60 * 1000); // التحويل إلى مللي ثانية
+}, randomInterval() * 300 * 1000); // التحويل إلى مللي ثانية
 
 app.use(bodyParser.json());
 app.use(webhookCallback(bot, "express"));
