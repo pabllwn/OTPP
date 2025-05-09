@@ -173,5 +173,5 @@ app.get("/", (req, res) => {
 
 app.listen(3000, async () => {
   console.log("Bot server running on port 3000");
-  await bot.api.setWebhook("https://your-webhook-url.com");
+  await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
 });
