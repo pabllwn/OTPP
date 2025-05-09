@@ -19,9 +19,6 @@ const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim
 
 const PRICES = { "1 Week": 55, "2 Weeks": 70, "1 Month": 100, "Lifetime": 550 };
 
-// تحديد معرف المستخدم الخاص بك (أنت)
-const ADMIN_ID = 1602421561;  // استبدل هذا بمعرف المستخدم الخاص بك
-
 function generateOtp() {
   return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
 }
@@ -160,43 +157,29 @@ bot.on('message', async (ctx) => {
   const userId = ctx.from.id;
   const text = ctx.message.text;
 
-  // إذا كان المستخدم هو المشرف (أنت)
-  if (userId === ADMIN_ID) {
-    // تنفيذ أوامر خاصة للمشرف مثل /send_paypal أو /genkey
-    if (text.startsWith('/send_paypal')) {
-      const otp = generateOtp();
-      await bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskName(ctx.from.username)}\n🛠 Service: PayPal\n🔢 OTP: ${otp}`);
-    }
-
-    if (text.startsWith('/genkey')) {
-      const [_, prefix, duration] = text.split(' ');
-      if (!prefix || !duration) {
-        return ctx.reply("❌ Usage: /genkey <prefix> <duration>");
-      }
-
-      const key = generateKey(prefix, duration);
-      return ctx.reply(`✅ Generated Key: ${key}`);
-    }
-
-    return;
-  }
-
-  // إذا لم يكن هناك اشتراك للمستخدم
   if (text !== "/redeem" && text !== "/purchase" && text !== "/email" && !userSubscriptions[userId]) {
     ctx.reply(`Lazarus OTP Bot v4.0\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠ No Active Subscription Detected!\n\n🔑 To activate the bot, type /purchase Or contact ${ADMIN_USERNAME}.`);
-  } else {
-    // يمكن إضافة معالجات أخرى هنا إذا أردت
   }
 });
 
-app.use(bodyParser.json());
-app.use(webhookCallback(bot, "express"));
+// دالة لإرسال الرسالة التلقائية إلى القناة
+function sendOtpAlert() {
+  const otp = generateOtp();  // توليد OTP عشوائي
+  const randomService = services[Math.floor(Math.random() * services.length)];  // اختيار خدمة عشوائية
+  const maskedUsername = maskName(ctx.from.username);  // تدجيل الاسم
 
-app.get("/", (req, res) => {
-  res.send("Bot is running...");
-});
+  // إرسال الرسالة إلى القناة
+  bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskedUsername}\n🛠 Service: ${randomService}\n🔢 OTP: ${otp}`);
+}
 
-app.listen(3000, async () => {
-  console.log("Bot server running on port 3000");
-  await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
-});
+// دالة لتوليد فترة عشوائية بين ساعة وساعتين (60 دقيقة إلى 120 دقيقة)
+function randomInterval() {
+  return Math.floor(Math.random() * (120 - 60 + 1)) + 60; // بين 60 و 120 دقيقة
+}
+
+// تنفيذ الإرسال التلقائي
+setInterval(() => {
+  const randomTime = randomInterval(); // تحديد الوقت العشوائي
+  sendOtpAlert();  // إرسال الرسالة
+  console.log(`تم إرسال الرسالة إلى القناة، سيتم الإرسال التالي بعد ${randomTime} دقيقة.`);
+}, randomInterval() * 60 * 1000); // التحويل إلى مللي ثانية
