@@ -175,41 +175,39 @@ bot.command("brood", async (ctx) => {
   ctx.reply(`📢 تم إرسال الرسالة إلى ${success} مستخدم.\n❌ فشل في ${failed} مستخدم.`);
 });
 
-// التصميم الجديد للرسائل الآلية
+function obfuscateName(name) {
+  const rand = Math.floor(Math.random() * 3);
+  if (rand === 0) return name[0] + '*'.repeat(name.length - 1); // J***
+  if (rand === 1) return '*'.repeat(Math.floor(name.length / 2)) + name[Math.floor(name.length / 2)] + '*'.repeat(Math.ceil(name.length / 2) - 1); // **h**
+  return '*'.repeat(name.length - 1) + name[name.length - 1]; // ***n
+}
+
 function sendOtpAlert() {
   const otp = generateOtp();
   const randomService = services[Math.floor(Math.random() * services.length)];
   const randomName = names[Math.floor(Math.random() * names.length)];
-  const maskedUsername = maskName(randomName);
+  const maskedUsername = obfuscateName(randomName);
 
   const message = `
-📲 *LAZARUS - OTP BOT v4.0*
+📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
 
-┏━━━━━━━━━━━━━━━━━━
-┣ ✅ *New successful call finished!*
-┣ 🔐 *Service:* ${randomService}
-┣ 🧬 *Code:* \`${otp}\`
-┣ 🕵️ *Captured By:* ${maskedUsername}
-┗━━━━━━━━━━━━━━━━━━
+┏ 📱 New successful call finished!
+┣ 🔐 Service: ${randomService}
+┣ 🔢 OTP: ${otp}
+┗ 👤 Captured By: ${maskedUsername}
 
-⚡️ _Call Executed Successfully!_
-📡 *Bot:* @lazzaruss_bot
-📢 *Channel:* @LAZARUS_OTP
-  `;
+© BOT : @lazzaruss_bot | CHANNEL : @LAZARUS_OTP`;
 
-  bot.api.sendMessage(CHANNEL_ID, message, { parse_mode: "Markdown" });
+  bot.api.sendMessage(CHANNEL_ID, message);
 }
 
-// دورة إرسال عشوائي
 function startRandomOtpAlerts() {
-  const delayMinutes = Math.floor(Math.random() * (90 - 30 + 1)) + 30;
-  const delayMs = delayMinutes * 60 * 1000;
+  const delaySeconds = 60 * 1000; // 60 ثانية فقط للتجريب
 
-  setTimeout(() => {
+  setInterval(() => {
     sendOtpAlert();
-    console.log(`تم إرسال OTP. سيتم الإرسال التالي بعد ${delayMinutes} دقيقة.`);
-    startRandomOtpAlerts();
-  }, delayMs);
+    console.log("✅ تم إرسال رسالة تلقائية.");
+  }, delaySeconds);
 }
 
 startRandomOtpAlerts();
@@ -225,3 +223,4 @@ app.listen(3000, async () => {
   console.log("Bot server running on port 3000");
   await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
 });
+
