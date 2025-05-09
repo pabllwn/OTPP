@@ -1,18 +1,19 @@
 import express from 'express';
 import { Bot, webhookCallback } from 'grammy';
 import bodyParser from 'body-parser';
-import fs from 'fs';
-import path from 'path';
 
 const app = express();
 const bot = new Bot("8027706435:AAGyrnAum58yj34CjdbmXanQ2AW5RR95wgc");
 
-const CHANNEL_ID = "@LAZARUSOTP";
-const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
+const CHANNEL_ID = "@LAZARUS_OTP";
+const ADMIN_ID = 1602421561;
+const ADMIN_USERNAME = "@cracking_morocco";
+
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
 let userSubscriptions = {};
 let userKeys = {};
 let keyExpirations = {};
+const allUsers = new Set();
 
 const services = ["Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pin", "Crypto", "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"];
 const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine", "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"];
@@ -83,6 +84,7 @@ SET CUSTOM VOICE
 ❓ Use ? in number to spoof random number`;
 
 bot.command("start", async (ctx) => {
+  allUsers.add(ctx.from.id);
   await ctx.reply(startMessage, {
     reply_markup: {
       inline_keyboard: [
@@ -106,6 +108,7 @@ bot.callbackQuery("purchase", async (ctx) => {
 });
 
 bot.command("redeem", (ctx) => {
+  allUsers.add(ctx.from.id);
   const userId = ctx.from.id;
   const args = ctx.message.text.split(' ').slice(1);
   if (args.length === 0) return ctx.reply("🔑 Please send a key like this: /redeem YOUR_KEY");
@@ -135,7 +138,7 @@ bot.command("redeem", (ctx) => {
 });
 
 bot.command("plan", (ctx) => {
-  ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:\n\n💰 1 Day : $20\n💰 2 Days : $30\n💰 1 Week : $55\n💰 2 Weeks : $70\n💰 1 Month : $100\n💰 3 Months : $250\n💰 Lifetime : $550\n\nDM @CKRACKING_MOROCCO to get your key 🔑\n📩 Support: @CKRACKING_MOROCCO`);
+  ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:\n\n💰 1 Day : $20\n💰 2 Days : $30\n💰 1 Week : $55\n💰 2 Weeks : $70\n💰 1 Month : $100\n💰 3 Months : $250\n💰 Lifetime : $550\n\nDM ${ADMIN_USERNAME} to get your key 🔑\n📩 Support: ${ADMIN_USERNAME}`);
 });
 
 bot.command("purchase", async (ctx) => {
@@ -152,17 +155,27 @@ bot.command("purchase", async (ctx) => {
   }
 });
 
-// الرد على أي أمر آخر إذا لم يكن لديه اشتراك
-bot.on('message', async (ctx) => {
-  const userId = ctx.from.id;
-  const text = ctx.message.text;
+// أمر /brood لإرسال رسالة جماعية
+bot.command("brood", async (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return ctx.reply("❌ هذا الأمر مخصص للمسؤول فقط.");
 
-  if (text !== "/redeem" && text !== "/purchase" && text !== "/email" && !userSubscriptions[userId]) {
-    ctx.reply(`Lazarus OTP Bot v4.0\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠ No Active Subscription Detected!\n\n🔑 To activate the bot, type /purchase Or contact ${ADMIN_USERNAME}.`);
+  const message = ctx.message.text.split(' ').slice(1).join(' ');
+  if (!message) return ctx.reply("❗ اكتب الرسالة بعد الأمر. مثل:\n/brood مرحبًا بالجميع!");
+
+  let success = 0, failed = 0;
+
+  for (let userId of allUsers) {
+    try {
+      await bot.api.sendMessage(userId, message);
+      success++;
+    } catch {
+      failed++;
+    }
   }
+
+  ctx.reply(`📢 تم إرسال الرسالة إلى ${success} مستخدم.\n❌ فشل في ${failed} مستخدم.`);
 });
 
-// إرسال رسالة OTP تلقائية إلى القناة بفاصل عشوائي
 function sendOtpAlert() {
   const otp = generateOtp();
   const randomService = services[Math.floor(Math.random() * services.length)];
@@ -172,7 +185,6 @@ function sendOtpAlert() {
   bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskedUsername}\n🛠 Service: ${randomService}\n🔢 OTP: ${otp}`);
 }
 
-// بدء الجدولة العشوائية للإرسال
 function startRandomOtpAlerts() {
   const delayMinutes = Math.floor(Math.random() * (90 - 30 + 1)) + 30;
   const delayMs = delayMinutes * 60 * 1000;
