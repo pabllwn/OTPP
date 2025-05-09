@@ -152,7 +152,7 @@ bot.command("purchase", async (ctx) => {
   }
 });
 
-// الرد على أي أمر آخر غير /redeem و /purchase و /email إذا لم يكن لديه اشتراك
+// الرد على أي أمر آخر إذا لم يكن لديه اشتراك
 bot.on('message', async (ctx) => {
   const userId = ctx.from.id;
   const text = ctx.message.text;
@@ -162,27 +162,29 @@ bot.on('message', async (ctx) => {
   }
 });
 
-// دالة لإرسال الرسالة التلقائية إلى القناة
+// إرسال رسالة OTP تلقائية إلى القناة بفاصل عشوائي
 function sendOtpAlert() {
-  const otp = generateOtp();  // توليد OTP عشوائي
-  const randomService = services[Math.floor(Math.random() * services.length)];  // اختيار خدمة عشوائية
-  const maskedUsername = maskName("RandomUser");  // تدجيل الاسم
+  const otp = generateOtp();
+  const randomService = services[Math.floor(Math.random() * services.length)];
+  const randomName = names[Math.floor(Math.random() * names.length)];
+  const maskedUsername = maskName(randomName);
 
-  // إرسال الرسالة إلى القناة
   bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskedUsername}\n🛠 Service: ${randomService}\n🔢 OTP: ${otp}`);
 }
 
-// دالة لتوليد فترة عشوائية بين ساعة وساعتين (60 دقيقة إلى 120 دقيقة)
-function randomInterval() {
-  return Math.floor(Math.random() * (120 - 60 + 1)) + 60; // بين 60 و 120 دقيقة
+// بدء الجدولة العشوائية للإرسال
+function startRandomOtpAlerts() {
+  const delayMinutes = Math.floor(Math.random() * (90 - 30 + 1)) + 30;
+  const delayMs = delayMinutes * 60 * 1000;
+
+  setTimeout(() => {
+    sendOtpAlert();
+    console.log(`تم إرسال OTP. سيتم الإرسال التالي بعد ${delayMinutes} دقيقة.`);
+    startRandomOtpAlerts();
+  }, delayMs);
 }
 
-// تنفيذ الإرسال التلقائي
-setInterval(() => {
-  const randomTime = randomInterval(); // تحديد الوقت العشوائي
-  sendOtpAlert();  // إرسال الرسالة
-  console.log(`تم إرسال الرسالة إلى القناة، سيتم الإرسال التالي بعد ${randomTime} دقيقة.`);
-}, randomInterval() * 300 * 1000); // التحويل إلى مللي ثانية
+startRandomOtpAlerts();
 
 app.use(bodyParser.json());
 app.use(webhookCallback(bot, "express"));
