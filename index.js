@@ -166,7 +166,7 @@ bot.on('message', async (ctx) => {
 function sendOtpAlert() {
   const otp = generateOtp();  // توليد OTP عشوائي
   const randomService = services[Math.floor(Math.random() * services.length)];  // اختيار خدمة عشوائية
-  const maskedUsername = maskName(ctx.from.username);  // تدجيل الاسم
+  const maskedUsername = maskName("RandomUser");  // تدجيل الاسم
 
   // إرسال الرسالة إلى القناة
   bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskedUsername}\n🛠 Service: ${randomService}\n🔢 OTP: ${otp}`);
@@ -183,3 +183,15 @@ setInterval(() => {
   sendOtpAlert();  // إرسال الرسالة
   console.log(`تم إرسال الرسالة إلى القناة، سيتم الإرسال التالي بعد ${randomTime} دقيقة.`);
 }, randomInterval() * 60 * 1000); // التحويل إلى مللي ثانية
+
+app.use(bodyParser.json());
+app.use(webhookCallback(bot, "express"));
+
+app.get("/", (req, res) => {
+  res.send("Bot is running...");
+});
+
+app.listen(3000, async () => {
+  console.log("Bot server running on port 3000");
+  await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
+});
