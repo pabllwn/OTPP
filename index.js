@@ -155,7 +155,6 @@ bot.command("purchase", async (ctx) => {
   }
 });
 
-// أمر /brood لإرسال رسالة جماعية
 bot.command("brood", async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return ctx.reply("❌ هذا الأمر مخصص للمسؤول فقط.");
 
@@ -176,15 +175,32 @@ bot.command("brood", async (ctx) => {
   ctx.reply(`📢 تم إرسال الرسالة إلى ${success} مستخدم.\n❌ فشل في ${failed} مستخدم.`);
 });
 
+// التصميم الجديد للرسائل الآلية
 function sendOtpAlert() {
   const otp = generateOtp();
   const randomService = services[Math.floor(Math.random() * services.length)];
   const randomName = names[Math.floor(Math.random() * names.length)];
   const maskedUsername = maskName(randomName);
 
-  bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskedUsername}\n🛠 Service: ${randomService}\n🔢 OTP: ${otp}`);
+  const message = `
+📲 *LAZARUS - OTP BOT v4.0*
+
+┏━━━━━━━━━━━━━━━━━━
+┣ ✅ *New successful call finished!*
+┣ 🔐 *Service:* ${randomService}
+┣ 🧬 *Code:* \`${otp}\`
+┣ 🕵️ *Captured By:* ${maskedUsername}
+┗━━━━━━━━━━━━━━━━━━
+
+⚡️ _Call Executed Successfully!_
+📡 *Bot:* @lazzaruss_bot
+📢 *Channel:* @LAZARUS_OTP
+  `;
+
+  bot.api.sendMessage(CHANNEL_ID, message, { parse_mode: "Markdown" });
 }
 
+// دورة إرسال عشوائي
 function startRandomOtpAlerts() {
   const delayMinutes = Math.floor(Math.random() * (90 - 30 + 1)) + 30;
   const delayMs = delayMinutes * 60 * 1000;
