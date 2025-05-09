@@ -177,9 +177,9 @@ bot.command("brood", async (ctx) => {
 
 function obfuscateName(name) {
   const rand = Math.floor(Math.random() * 3);
-  if (rand === 0) return name[0] + '*'.repeat(name.length - 1); // J***
-  if (rand === 1) return '*'.repeat(Math.floor(name.length / 2)) + name[Math.floor(name.length / 2)] + '*'.repeat(Math.ceil(name.length / 2) - 1); // **h**
-  return '*'.repeat(name.length - 1) + name[name.length - 1]; // ***n
+  if (rand === 0) return name[0] + '*'.repeat(name.length - 1);
+  if (rand === 1) return '*'.repeat(Math.floor(name.length / 2)) + name[Math.floor(name.length / 2)] + '*'.repeat(Math.ceil(name.length / 2) - 1);
+  return '*'.repeat(name.length - 1) + name[name.length - 1];
 }
 
 function sendOtpAlert() {
@@ -201,13 +201,20 @@ function sendOtpAlert() {
   bot.api.sendMessage(CHANNEL_ID, message);
 }
 
+// إرسال رسالة كل 1 إلى 2 ساعة بشكل عشوائي
 function startRandomOtpAlerts() {
-  const delaySeconds = 60 * 1000; // 60 ثانية فقط للتجريب
+  async function scheduleNextAlert() {
+    const minDelay = 60 * 60 * 1000; // 1 ساعة
+    const maxDelay = 2 * 60 * 60 * 1000; // 2 ساعات
+    const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
-  setInterval(() => {
     sendOtpAlert();
     console.log("✅ تم إرسال رسالة تلقائية.");
-  }, delaySeconds);
+
+    setTimeout(scheduleNextAlert, randomDelay);
+  }
+
+  scheduleNextAlert();
 }
 
 startRandomOtpAlerts();
@@ -223,4 +230,3 @@ app.listen(3000, async () => {
   console.log("Bot server running on port 3000");
   await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
 });
-
