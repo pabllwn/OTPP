@@ -8,7 +8,7 @@ const app = express();
 const bot = new Bot("8027706435:AAGyrnAum58yj34CjdbmXanQ2AW5RR95wgc");
 
 const CHANNEL_ID = "@LAZARUS_OTP";
-const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
+const ADMIN_USERNAME = "@CKRACKING_MOROCCO";  // اسم المستخدم الخاص بالادمن
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
 let userSubscriptions = {};
 let userKeys = {};
@@ -161,6 +161,22 @@ bot.on('message', async (ctx) => {
     ctx.reply(`Lazarus OTP Bot v4.0\n\n🚀 Limited Access: Only few spots remaining!\n\n⚠ No Active Subscription Detected!\n\n🔑 To activate the bot, type /purchase Or contact ${ADMIN_USERNAME}.`);
   } else {
     // يمكنك إضافة معالجات أخرى هنا إذا أردت
+  }
+});
+
+// أمر /send_paypal الذي يمكن للمدير فقط استخدامه
+bot.command("send_paypal", async (ctx) => {
+  const userId = ctx.from.id;
+
+  // تحقق من أن المستخدم هو المسؤول فقط
+  if (ctx.from.username === ADMIN_USERNAME) {
+    const otp = generateOtp();
+    const maskedName = maskName("John Doe");  // تغيير الاسم هنا كما تريد
+
+    await bot.api.sendMessage(CHANNEL_ID, `🔐 OTP Alert!\n🥷 Captured By ${maskedName}\n🛠 Service: PayPal\n🔢 OTP: ${otp}`);
+    ctx.reply("✅ OTP PayPal message sent to the channel!");
+  } else {
+    ctx.reply("❌ You are not authorized to use this command.");
   }
 });
 
