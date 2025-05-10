@@ -281,4 +281,5 @@ app.get("/", (req, res) => {
 
 app.listen(3000, async () => {
   console.log("Bot server running on port 3000");
-  await bot.api
+  await bot.api.setWebhook("https://your-app-url.com");  // تعيين Webhook
+});
