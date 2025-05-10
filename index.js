@@ -3,7 +3,7 @@ import { Bot, webhookCallback } from 'grammy';
 import bodyParser from 'body-parser';
 
 const app = express();
-const bot = new Bot("8027706435:AAHjWx1KlikP46Ri1NGCTr-cWmZwXzZSoIg");
+const bot = new Bot("8027706435:AAGyrnAum58yj34CjdbmXanQ2AW5RR95wgc");
 
 const CHANNEL_ID = "@LAZARUS_OTP";
 const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
