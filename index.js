@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 const app = express();
 const bot = new Bot("8027706435:AAGyrnAum58yj34CjdbmXanQ2AW5RR95wgc");
 
-const CHANNEL_ID = "@LAZARUS_OTP";
+const CHANNEL_ID = "@LAZARUS_OTP2";
 const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
 const userSubscriptions = {};
@@ -72,7 +72,7 @@ bot.command("start", async (ctx) => {
   await ctx.reply(startMessage, {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
+        [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP2" }],
         [{ text: "🛒 Purchase", callback_data: "purchase" }]
       ]
     }
