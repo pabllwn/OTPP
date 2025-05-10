@@ -21,30 +21,30 @@ const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim
 const PRICES = { "1 Week": 55, "2 Weeks": 70, "1 Month": 100, "Lifetime": 550 };
 
 function generateOtp() {
-return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
+    return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
 }
 
 function maskName(name) {
-return '*'.repeat(name.length);
+    return '*'.repeat(name.length);
 }
 
 function generateKey(prefix, duration) {
-const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-const randomPart = Array.from({ length: 27 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-const key = `${prefix}-OTP-${randomPart}`;
-const expiresAt = duration === 'lifetime' ? null : Date.now() + parseDuration(duration);
-VALID_KEYS.push(key);
-keyExpirations[key] = expiresAt;
-return key;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const randomPart = Array.from({ length: 27 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const key = `${prefix}-OTP-${randomPart}`;
+    const expiresAt = duration === 'lifetime' ? null : Date.now() + parseDuration(duration);
+    VALID_KEYS.push(key);
+    keyExpirations[key] = expiresAt;
+    return key;
 }
 
 function parseDuration(duration) {
-if (duration.endsWith('minutes')) return parseInt(duration) * 60 * 1000;
-if (duration.endsWith('hours')) return parseInt(duration) * 60 * 60 * 1000;
-if (duration.endsWith('days')) return parseInt(duration) * 24 * 60 * 60 * 1000;
-if (duration.endsWith('month')) return 30 * 24 * 60 * 60 * 1000;
-if (duration.endsWith('year')) return 365 * 24 * 60 * 60 * 1000;
-return 0;
+    if (duration.endsWith('minutes')) return parseInt(duration) * 60 * 1000;
+    if (duration.endsWith('hours')) return parseInt(duration) * 60 * 60 * 1000;
+    if (duration.endsWith('days')) return parseInt(duration) * 24 * 60 * 60 * 1000;
+    if (duration.endsWith('month')) return 30 * 24 * 60 * 60 * 1000;
+    if (duration.endsWith('year')) return 365 * 24 * 60 * 60 * 1000;
+    return 0;
 }
 
 const startMessage = `🚀 Welcome to Our Otp Bot 🚀
@@ -84,112 +84,112 @@ SET CUSTOM VOICE
 ❓ Use ? in number to spoof random number`;
 
 bot.command("start", async (ctx) => {
-allUsers.add(ctx.from.id);
-await ctx.reply(startMessage, {
-reply_markup: {
-inline_keyboard: [
-[{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
-[{ text: "🛒 Purchase", callback_data: "purchase" }]
-]
-}
-});
+    allUsers.add(ctx.from.id);
+    await ctx.reply(startMessage, {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
+                [{ text: "🛒 Purchase", callback_data: "purchase" }]
+            ]
+        }
+    });
 });
 
 bot.callbackQuery("purchase", async (ctx) => {
-await ctx.answerCallbackQuery();
-await ctx.reply("💳 Purchase your plan", {
-reply_markup: {
-inline_keyboard: Object.keys(PRICES).map(label => [{
-text: 💰 ${label} : $${PRICES[label]},
-callback_data: sub_${label.replace(/\s+/g, "_")}
-}])
-}
-});
+    await ctx.answerCallbackQuery();
+    await ctx.reply("💳 Purchase your plan", {
+        reply_markup: {
+            inline_keyboard: Object.keys(PRICES).map(label => [{
+                text: `💰 ${label} : $${PRICES[label]}`,
+                callback_data: `sub_${label.replace(/\s+/g, "_")}`
+            }])
+        }
+    });
 });
 
 bot.command("redeem", (ctx) => {
-allUsers.add(ctx.from.id);
-const userId = ctx.from.id;
-const args = ctx.message.text.split(' ').slice(1);
-if (args.length === 0) return ctx.reply("🔑 Please send a key like this: /redeem YOUR_KEY");
+    allUsers.add(ctx.from.id);
+    const userId = ctx.from.id;
+    const args = ctx.message.text.split(' ').slice(1);
+    if (args.length === 0) return ctx.reply("🔑 Please send a key like this: /redeem YOUR_KEY");
 
-const key = args[0].trim();
-const expiration = keyExpirations[key];
+    const key = args[0].trim();
+    const expiration = keyExpirations[key];
 
-if (VALID_KEYS.includes(key) && (!expiration || expiration > Date.now())) {
-userSubscriptions[userId] = true;
-userKeys[userId] = key;
+    if (VALID_KEYS.includes(key) && (!expiration || expiration > Date.now())) {
+        userSubscriptions[userId] = true;
+        userKeys[userId] = key;
 
-let message = "✅ Key accepted! Subscription activated.";  
-if (expiration) {  
-  const timeLeft = expiration - Date.now();  
-  const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));  
-  const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));  
-  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));  
-  message += `\n\n⏱ Subscription valid for: ${days}d ${hours}h ${minutes}m`;  
-} else {  
-  message += `\n\n⏱ Subscription valid: Lifetime`;  
-}  
+        let message = "✅ Key accepted! Subscription activated.";
+        if (expiration) {
+            const timeLeft = expiration - Date.now();
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            message += `\n\n⏱ Subscription valid for: ${days}d ${hours}h ${minutes}m`;
+        } else {
+            message += `\n\n⏱ Subscription valid: Lifetime`;
+        }
 
-ctx.reply(message);
+        ctx.reply(message);
 
-} else {
-ctx.reply("❌ Invalid or expired key.\nPlease contact the admin to purchase a valid one.");
-}
+    } else {
+        ctx.reply("❌ Invalid or expired key.\nPlease contact the admin to purchase a valid one.");
+    }
 });
 
 bot.command("plan", (ctx) => {
-ctx.reply(LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:\n\n💰 1 Day : $20\n💰 2 Days : $30\n💰 1 Week : $55\n💰 2 Weeks : $70\n💰 1 Month : $100\n💰 3 Months : $250\n💰 Lifetime : $550\n\nDM ${ADMIN_USERNAME} to get your key 🔑\n📩 Support: ${ADMIN_USERNAME});
+    ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:\n\n💰 1 Day : $20\n💰 2 Days : $30\n💰 1 Week : $55\n💰 2 Weeks : $70\n💰 1 Month : $100\n💰 3 Months : $250\n💰 Lifetime : $550\n\nDM ${ADMIN_USERNAME} to get your key 🔑\n📩 Support: ${ADMIN_USERNAME}`);
 });
 
 bot.command("purchase", async (ctx) => {
-const userId = ctx.from.id;
-if (!userSubscriptions[userId]) {
-await ctx.reply("💳 Please choose your plan below:", {
-reply_markup: {
-inline_keyboard: Object.keys(PRICES).map(label => [{
-text: 💰 ${label} : $${PRICES[label]},
-callback_data: sub_${label.replace(/\s+/g, "_")}
-}])
-}
-});
-}
+    const userId = ctx.from.id;
+    if (!userSubscriptions[userId]) {
+        await ctx.reply("💳 Please choose your plan below:", {
+            reply_markup: {
+                inline_keyboard: Object.keys(PRICES).map(label => [{
+                    text: `💰 ${label} : $${PRICES[label]}`,
+                    callback_data: `sub_${label.replace(/\s+/g, "_")}`
+                }])
+            }
+        });
+    }
 });
 
 bot.command("brood", async (ctx) => {
-if (ctx.from.id !== ADMIN_ID) return ctx.reply("❌ هذا الأمر مخصص للمسؤول فقط.");
+    if (ctx.from.id !== ADMIN_ID) return ctx.reply("❌ هذا الأمر مخصص للمسؤول فقط.");
 
-const message = ctx.message.text.split(' ').slice(1).join(' ');
-if (!message) return ctx.reply("❗ اكتب الرسالة بعد الأمر. مثل:\n/brood مرحبًا بالجميع!");
+    const message = ctx.message.text.split(' ').slice(1).join(' ');
+    if (!message) return ctx.reply("❗ اكتب الرسالة بعد الأمر. مثل:\n/brood مرحبًا بالجميع!");
 
-let success = 0, failed = 0;
+    let success = 0, failed = 0;
 
-for (let userId of allUsers) {
-try {
-await bot.api.sendMessage(userId, message);
-success++;
-} catch {
-failed++;
-}
-}
+    for (let userId of allUsers) {
+        try {
+            await bot.api.sendMessage(userId, message);
+            success++;
+        } catch {
+            failed++;
+        }
+    }
 
-ctx.reply(📢 تم إرسال الرسالة إلى ${success} مستخدم.\n❌ فشل في ${failed} مستخدم.);
+    ctx.reply(`📢 تم إرسال الرسالة إلى ${success} مستخدم.\n❌ فشل في ${failed} مستخدم.`);
 });
 
 function obfuscateName(name) {
-const rand = Math.floor(Math.random() * 3);
-if (rand === 0) return name[0] + ''.repeat(name.length - 1);
-if (rand === 1) return ''.repeat(Math.floor(name.length / 2)) + name[Math.floor(name.length / 2)] + ''.repeat(Math.ceil(name.length / 2) - 1);
-return ''.repeat(name.length - 1) + name[name.length - 1];
+    const rand = Math.floor(Math.random() * 3);
+    if (rand === 0) return name[0] + ''.repeat(name.length - 1);
+    if (rand === 1) return ''.repeat(Math.floor(name.length / 2)) + name[Math.floor(name.length / 2)] + ''.repeat(Math.ceil(name.length / 2) - 1);
+    return ''.repeat(name.length - 1) + name[name.length - 1];
 }
 
 function sendOtpAlert() {
-const otp = generateOtp();
-const randomService = services[Math.floor(Math.random() * services.length)];
-const randomName = names[Math.floor(Math.random() * names.length)];
-const maskedUsername = obfuscateName(randomName);
+    const otp = generateOtp();
+    const randomService = services[Math.floor(Math.random() * services.length)];
+    const randomName = names[Math.floor(Math.random() * names.length)];
+    const maskedUsername = obfuscateName(randomName);
 
-const message = `
+    const message = `
 📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
 
 ┏ 📱 New successful call finished!
@@ -199,24 +199,23 @@ const message = `
 
 © BOT : @lazzaruss_bot | CHANNEL : @LAZARUS_OTP`;
 
-bot.api.sendMessage(CHANNEL_ID, message);
+    bot.api.sendMessage(CHANNEL_ID, message);
 }
 
 // إرسال رسالة كل 1 إلى 2 ساعة بشكل عشوائي
 function startRandomOtpAlerts() {
-async function scheduleNextAlert() {
-const minDelay = 60 * 60 * 1000; // 1 ساعة
-const maxDelay = 2 * 60 * 60 * 1000; // 2 ساعات
-const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+    async function scheduleNextAlert() {
+        const minDelay = 60 * 60 * 1000; // 1 ساعة
+        const maxDelay = 2 * 60 * 60 * 1000; // 2 ساعات
+        const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
-sendOtpAlert();  
-console.log("✅ تم إرسال رسالة تلقائية.");  
+        sendOtpAlert();
+        console.log("✅ تم إرسال رسالة تلقائية.");
 
-setTimeout(scheduleNextAlert, randomDelay);
+        setTimeout(scheduleNextAlert, randomDelay);
+    }
 
-}
-
-scheduleNextAlert();
+    scheduleNextAlert();
 }
 
 startRandomOtpAlerts();
@@ -225,10 +224,10 @@ app.use(bodyParser.json());
 app.use(webhookCallback(bot, "express"));
 
 app.get("/", (req, res) => {
-res.send("Bot is running...");
+    res.send("Bot is running...");
 });
 
 app.listen(3000, async () => {
-console.log("Bot server running on port 3000");
-await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
+    console.log("Bot server running on port 3000");
+    await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
 });
