@@ -31,7 +31,7 @@ return '*'.repeat(name.length);
 function generateKey(prefix, duration) {
 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const randomPart = Array.from({ length: 27 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-const key = ${prefix}-OTP-${randomPart};
+const key = `${prefix}-OTP-${randomPart}`;
 const expiresAt = duration === 'lifetime' ? null : Date.now() + parseDuration(duration);
 VALID_KEYS.push(key);
 keyExpirations[key] = expiresAt;
