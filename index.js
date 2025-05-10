@@ -7,7 +7,7 @@ const bot = new Bot("8027706435:AAGyrnAum58yj34CjdbmXanQ2AW5RR95wgc");
 
 const CHANNEL_ID = "@LAZARUS_OTP";
 const ADMIN_ID = 1602421561;
-const ADMIN_USERNAME = "@cracking_morocco";
+const ADMIN_USERNAME = "@CKRACKING_MOROCCO";
 
 const VALID_KEYS = ["TRIYAL-1234", "DEMLO-9999"];
 let userSubscriptions = {};
@@ -88,7 +88,7 @@ bot.command("start", async (ctx) => {
   await ctx.reply(startMessage, {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "📢 Channel", url: "https://t.me/LAZARUSOTP" }],
+        [{ text: "📢 Channel", url: "https://t.me/LAZARUS_OTP" }],
         [{ text: "🛒 Purchase", callback_data: "purchase" }]
       ]
     }
