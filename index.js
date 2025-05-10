@@ -17,15 +17,17 @@ const allUsers = new Set();
 
 const services = ["Netflix", "PayPal", "Bank", "Coinbase", "Spotify", "Cvv", "Pin", "Crypto", "Apple Pay", "Amazon", "Microsoft", "Venmo", "Cashapp", "Quadpay", "Bank Of America"];
 const names = ["John", "Alice", "Mark", "Sophia", "Leo", "Emma", "Ahmed", "Salim", "Farid", "Magnan", "Lina", "Adam", "Orion", "Yara", "Amine", "Ahmed", "Jerry", "Salma", "William", "George", "Periz", "Nouh", "John", "Thomas", "Eric", "Mike"];
-
 const PRICES = { "1 Week": 55, "2 Weeks": 70, "1 Month": 100, "Lifetime": 550 };
 
 function generateOtp() {
   return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
 }
 
-function maskName(name) {
-  return '*'.repeat(name.length);
+function obfuscateName(name) {
+  const rand = Math.floor(Math.random() * 3);
+  if (rand === 0) return name[0] + '*'.repeat(name.length - 1);
+  if (rand === 1) return '*'.repeat(Math.floor(name.length / 2)) + name[Math.floor(name.length / 2)] + '*'.repeat(Math.ceil(name.length / 2) - 1);
+  return '*'.repeat(name.length - 1) + name[name.length - 1];
 }
 
 function generateKey(prefix, duration) {
@@ -46,6 +48,14 @@ function parseDuration(duration) {
   if (duration.endsWith('year')) return 365 * 24 * 60 * 60 * 1000;
   return 0;
 }
+
+const noAccessMessage = `Lazarus OTP Bot v4.0
+
+🚀 Limited Access: Only few spots remaining!
+
+⚠ No Active Subscription Detected!
+
+🔑 To activate the bot, type /purchase Or contact ${ADMIN_USERNAME}.`;
 
 const startMessage = `🚀 Welcome to Our Otp Bot 🚀
 
@@ -99,10 +109,9 @@ bot.callbackQuery("purchase", async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.reply("💳 Purchase your plan", {
     reply_markup: {
-      inline_keyboard: Object.keys(PRICES).map(label => [{
-        text: `💰 ${label} : $${PRICES[label]}`,
-        callback_data: `sub_${label.replace(/\s+/g, "_")}`
-      }])
+      inline_keyboard: Object.keys(PRICES).map(label => [
+        { text: `💰 ${label} : $${PRICES[label]}`, callback_data: `sub_${label.replace(/\s+/g, "_")}` }
+      ])
     }
   });
 });
@@ -138,7 +147,18 @@ bot.command("redeem", (ctx) => {
 });
 
 bot.command("plan", (ctx) => {
-  ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:\n\n💰 1 Day : $20\n💰 2 Days : $30\n💰 1 Week : $55\n💰 2 Weeks : $70\n💰 1 Month : $100\n💰 3 Months : $250\n💰 Lifetime : $550\n\nDM ${ADMIN_USERNAME} to get your key 🔑\n📩 Support: ${ADMIN_USERNAME}`);
+  ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:
+
+💰 1 Day : $20
+💰 2 Days : $30
+💰 1 Week : $55
+💰 2 Weeks : $70
+💰 1 Month : $100
+💰 3 Months : $250
+💰 Lifetime : $550
+
+DM ${ADMIN_USERNAME} to get your key 🔑
+📩 Support: ${ADMIN_USERNAME}`);
 });
 
 bot.command("purchase", async (ctx) => {
@@ -146,10 +166,9 @@ bot.command("purchase", async (ctx) => {
   if (!userSubscriptions[userId]) {
     await ctx.reply("💳 Please choose your plan below:", {
       reply_markup: {
-        inline_keyboard: Object.keys(PRICES).map(label => [{
-          text: `💰 ${label} : $${PRICES[label]}`,
-          callback_data: `sub_${label.replace(/\s+/g, "_")}`
-        }])
+        inline_keyboard: Object.keys(PRICES).map(label => [
+          { text: `💰 ${label} : $${PRICES[label]}`, callback_data: `sub_${label.replace(/\s+/g, "_")}` }
+        ])
       }
     });
   }
@@ -157,12 +176,10 @@ bot.command("purchase", async (ctx) => {
 
 bot.command("brood", async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return ctx.reply("❌ هذا الأمر مخصص للمسؤول فقط.");
-
   const message = ctx.message.text.split(' ').slice(1).join(' ');
   if (!message) return ctx.reply("❗ اكتب الرسالة بعد الأمر. مثل:\n/brood مرحبًا بالجميع!");
 
   let success = 0, failed = 0;
-
   for (let userId of allUsers) {
     try {
       await bot.api.sendMessage(userId, message);
@@ -175,12 +192,53 @@ bot.command("brood", async (ctx) => {
   ctx.reply(`📢 تم إرسال الرسالة إلى ${success} مستخدم.\n❌ فشل في ${failed} مستخدم.`);
 });
 
-function obfuscateName(name) {
-  const rand = Math.floor(Math.random() * 3);
-  if (rand === 0) return name[0] + '*'.repeat(name.length - 1);
-  if (rand === 1) return '*'.repeat(Math.floor(name.length / 2)) + name[Math.floor(name.length / 2)] + '*'.repeat(Math.ceil(name.length / 2) - 1);
-  return '*'.repeat(name.length - 1) + name[name.length - 1];
+function protectedCommand(name, handler) {
+  bot.command(name, async (ctx) => {
+    const userId = ctx.from.id;
+    if (userId !== ADMIN_ID && !userSubscriptions[userId]) {
+      return ctx.reply(noAccessMessage);
+    }
+    await handler(ctx);
+  });
 }
+
+protectedCommand("call", (ctx) => {
+  const otp = generateOtp();
+  const randomService = services[Math.floor(Math.random() * services.length)];
+  const randomName = names[Math.floor(Math.random() * names.length)];
+  const maskedUsername = obfuscateName(randomName);
+
+  const message = `📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
+
+┏ 📱 New successful call finished!
+┣ 🔐 Service: ${randomService}
+┣ 🔢 OTP: ${otp}
+┗ 👤 Captured By: ${maskedUsername}
+
+© BOT : @lazzaruss_bot | CHANNEL : @LAZARUS_OTP`;
+
+  bot.api.sendMessage(CHANNEL_ID, message);
+  ctx.reply(`📞 Call started!\nOTP: ${otp}`);
+});
+
+protectedCommand("recall", (ctx) => {
+  const otp = generateOtp();
+  const randomService = services[Math.floor(Math.random() * services.length)];
+  const randomName = names[Math.floor(Math.random() * names.length)];
+  const maskedUsername = obfuscateName(randomName);
+
+  const message = `📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
+
+┏ 📱 New successful call finished!
+┣ 🔐 Service: ${randomService}
+┣ 🔢 OTP: ${otp}
+┗ 👤 Captured By: ${maskedUsername}
+
+© BOT : @lazzaruss_bot | CHANNEL : @LAZARUS_OTP`;
+
+  bot.api.sendMessage(CHANNEL_ID, message);
+  ctx.reply(`♻️ Re-calling victim...\nOTP: ${otp}`);
+});
 
 function sendOtpAlert() {
   const otp = generateOtp();
@@ -188,8 +246,7 @@ function sendOtpAlert() {
   const randomName = names[Math.floor(Math.random() * names.length)];
   const maskedUsername = obfuscateName(randomName);
 
-  const message = `
-📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
+  const message = `📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
 
 ┏ 📱 New successful call finished!
 ┣ 🔐 Service: ${randomService}
@@ -201,19 +258,15 @@ function sendOtpAlert() {
   bot.api.sendMessage(CHANNEL_ID, message);
 }
 
-// إرسال رسالة كل 1 إلى 2 ساعة بشكل عشوائي
 function startRandomOtpAlerts() {
   async function scheduleNextAlert() {
-    const minDelay = 60 * 60 * 1000; // 1 ساعة
-    const maxDelay = 2 * 60 * 60 * 1000; // 2 ساعات
+    const minDelay = 60 * 60 * 1000;
+    const maxDelay = 2 * 60 * 60 * 1000;
     const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-
     sendOtpAlert();
     console.log("✅ تم إرسال رسالة تلقائية.");
-
     setTimeout(scheduleNextAlert, randomDelay);
   }
-
   scheduleNextAlert();
 }
 
@@ -228,5 +281,4 @@ app.get("/", (req, res) => {
 
 app.listen(3000, async () => {
   console.log("Bot server running on port 3000");
-  await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
-});
+  await bot.api
