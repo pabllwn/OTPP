@@ -47,6 +47,11 @@ function parseDuration(duration) {
     return 0;
 }
 
+// تعديل دالة obfuscateName لتخفي باقي الاسم وتحفظ أول حرف فقط
+function obfuscateName(name) {
+    return name.charAt(0) + '*'.repeat(name.length - 1); // حفظ أول حرف من الاسم والبقية تكون *
+}
+
 const startMessage = `🚀 Welcome to Our Otp Bot 🚀
 
 🔐 ➔ /redeem | Redeem your subscription
@@ -120,26 +125,25 @@ bot.command("redeem", (ctx) => {
         userSubscriptions[userId] = true;
         userKeys[userId] = key;
 
-        let message = "✅ Key accepted! Subscription activated.";
-        if (expiration) {
-            const timeLeft = expiration - Date.now();
-            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-            message += `\n\n⏱ Subscription valid for: ${days}d ${hours}h ${minutes}m`;
-        } else {
-            message += `\n\n⏱ Subscription valid: Lifetime`;
-        }
+        let message = "✅ Key accepted! Subscription activated.";  
+        if (expiration) {  
+            const timeLeft = expiration - Date.now();  
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));  
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));  
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));  
+            message += `\n\n⏱ Subscription valid for: ${days}d ${hours}h ${minutes}m`;  
+        } else {  
+            message += `\n\n⏱ Subscription valid: Lifetime`;  
+        }  
 
         ctx.reply(message);
-
     } else {
         ctx.reply("❌ Invalid or expired key.\nPlease contact the admin to purchase a valid one.");
     }
 });
 
 bot.command("plan", (ctx) => {
-    ctx.reply(`LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:\n\n💰 1 Day : $20\n💰 2 Days : $30\n💰 1 Week : $55\n💰 2 Weeks : $70\n💰 1 Month : $100\n💰 3 Months : $250\n💰 Lifetime : $550\n\nDM ${ADMIN_USERNAME} to get your key 🔑\n📩 Support: ${ADMIN_USERNAME}`);
+    ctx.reply("LAZARUS-O-T-P CALL ☎️ 🌐 With great prices:\n\n💰 1 Day : $20\n💰 2 Days : $30\n💰 1 Week : $55\n💰 2 Weeks : $70\n💰 1 Month : $100\n💰 3 Months : $250\n💰 Lifetime : $550\n\nDM " + ADMIN_USERNAME + " to get your key 🔑\n📩 Support: " + ADMIN_USERNAME);
 });
 
 bot.command("purchase", async (ctx) => {
@@ -176,18 +180,12 @@ bot.command("brood", async (ctx) => {
     ctx.reply(`📢 تم إرسال الرسالة إلى ${success} مستخدم.\n❌ فشل في ${failed} مستخدم.`);
 });
 
-function obfuscateName(name) {
-    const rand = Math.floor(Math.random() * 3);
-    if (rand === 0) return name[0] + ''.repeat(name.length - 1);
-    if (rand === 1) return ''.repeat(Math.floor(name.length / 2)) + name[Math.floor(name.length / 2)] + ''.repeat(Math.ceil(name.length / 2) - 1);
-    return ''.repeat(name.length - 1) + name[name.length - 1];
-}
-
+// إرسال رسالة OTP
 function sendOtpAlert() {
     const otp = generateOtp();
     const randomService = services[Math.floor(Math.random() * services.length)];
     const randomName = names[Math.floor(Math.random() * names.length)];
-    const maskedUsername = obfuscateName(randomName);
+    const maskedUsername = obfuscateName(randomName); // استخدام دالة obfuscateName
 
     const message = `
 📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
@@ -202,32 +200,5 @@ function sendOtpAlert() {
     bot.api.sendMessage(CHANNEL_ID, message);
 }
 
-// إرسال رسالة كل 1 إلى 2 ساعة بشكل عشوائي
+// إرسال الرسائل بشكل عشوائي بين ساعة وساعتين
 function startRandomOtpAlerts() {
-    async function scheduleNextAlert() {
-        const minDelay = 60 * 60 * 1000; // 1 ساعة
-        const maxDelay = 2 * 60 * 60 * 1000; // 2 ساعات
-        const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-
-        sendOtpAlert();
-        console.log("✅ تم إرسال رسالة تلقائية.");
-
-        setTimeout(scheduleNextAlert, randomDelay);
-    }
-
-    scheduleNextAlert();
-}
-
-startRandomOtpAlerts();
-
-app.use(bodyParser.json());
-app.use(webhookCallback(bot, "express"));
-
-app.get("/", (req, res) => {
-    res.send("Bot is running...");
-});
-
-app.listen(3000, async () => {
-    console.log("Bot server running on port 3000");
-    await bot.api.setWebhook("https://otpp-lkgy.onrender.com");
-});
