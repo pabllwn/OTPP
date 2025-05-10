@@ -266,5 +266,3 @@ bot.api.setWebhook(WEBHOOK_URL).then(() => {
     console.log("Server running...");
   });
 });
-
-bot.start();
