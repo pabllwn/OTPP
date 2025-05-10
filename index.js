@@ -201,4 +201,70 @@ function protectedCommand(name, handler) {
     await handler(ctx);
   });
 }
+protectedCommand("call", (ctx) => {
+  const otp = generateOtp();
+  const randomService = services[Math.floor(Math.random() * services.length)];
+  const randomName = names[Math.floor(Math.random() * names.length)];
+  const maskedUsername = obfuscateName(randomName);
 
+  const message = `📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
+
+┏ 📱 New Call: ${randomService}
+┣ 📲 Service: ${randomService}
+┣ 🆔 Name: ${maskedUsername}
+┣ 🔐 OTP: ${otp}
+┣ 🗓 Date: ${new Date().toLocaleString()}
+┗ 🏁 Please input the OTP code`;
+
+  ctx.reply(message);
+});
+
+protectedCommand("recall", (ctx) => {
+  const otp = generateOtp();
+  const randomService = services[Math.floor(Math.random() * services.length)];
+  const randomName = names[Math.floor(Math.random() * names.length)];
+  const maskedUsername = obfuscateName(randomName);
+
+  const message = `📲 LAZARUS - Recall OTP
+
+┏ 📱 Recall Call: ${randomService}
+┣ 📲 Service: ${randomService}
+┣ 🆔 Name: ${maskedUsername}
+┣ 🔐 OTP: ${otp}
+┣ 🗓 Date: ${new Date().toLocaleString()}
+┗ 🏁 Please input the OTP code`;
+
+  ctx.reply(message);
+});
+
+// Handle inline callback buttons
+bot.on("callback_query:data", async (ctx) => {
+  const data = ctx.callbackQuery.data;
+
+  if (data.startsWith("sub_")) {
+    const plan = data.replace("sub_", "").replace("_", " ");
+    const userId = ctx.from.id;
+
+    if (!userSubscriptions[userId]) {
+      await ctx.answerCallbackQuery({ text: "💳 You need to activate your subscription first." });
+      return ctx.reply("⚠ Please redeem your key first using the /redeem command.");
+    }
+
+    await ctx.answerCallbackQuery();
+    await ctx.reply(`📈 You selected the ${plan} plan. The price is ${PRICES[plan]} USD.`);
+  }
+});
+
+app.use(bodyParser.json());
+app.post("/webhook", webhookCallback(bot, "express"));
+
+const WEBHOOK_URL = "https://otpp-lkgy.onrender.com";
+
+bot.api.setWebhook(WEBHOOK_URL).then(() => {
+  console.log("Webhook set!");
+  app.listen(process.env.PORT || 3000, () => {
+    console.log("Server running...");
+  });
+});
+
+bot.start();
