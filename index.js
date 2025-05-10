@@ -25,7 +25,7 @@ function generateOtp() {
 }
 
 function maskName(name) {
-    return '*'.repeat(name.length);
+    return name.charAt(0) + '*'.repeat(name.length - 1); // حفظ أول حرف فقط من الاسم والبقية تكون *
 }
 
 function generateKey(prefix, duration) {
@@ -45,11 +45,6 @@ function parseDuration(duration) {
     if (duration.endsWith('month')) return 30 * 24 * 60 * 60 * 1000;
     if (duration.endsWith('year')) return 365 * 24 * 60 * 60 * 1000;
     return 0;
-}
-
-// تعديل دالة obfuscateName لتخفي باقي الاسم وتحفظ أول حرف فقط
-function obfuscateName(name) {
-    return name.charAt(0) + '*'.repeat(name.length - 1); // حفظ أول حرف من الاسم والبقية تكون *
 }
 
 const startMessage = `🚀 Welcome to Our Otp Bot 🚀
@@ -185,7 +180,7 @@ function sendOtpAlert() {
     const otp = generateOtp();
     const randomService = services[Math.floor(Math.random() * services.length)];
     const randomName = names[Math.floor(Math.random() * names.length)];
-    const maskedUsername = obfuscateName(randomName); // استخدام دالة obfuscateName
+    const maskedUsername = maskName(randomName); // استخدام دالة maskName
 
     const message = `
 📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0
@@ -199,6 +194,25 @@ function sendOtpAlert() {
 
     bot.api.sendMessage(CHANNEL_ID, message);
 }
-
 // إرسال الرسائل بشكل عشوائي بين ساعة وساعتين
 function startRandomOtpAlerts() {
+    setInterval(() => {
+        sendOtpAlert();
+    }, Math.floor(Math.random() * (2 * 60 * 60 * 1000 - 60 * 60 * 1000) + 60 * 60 * 1000));
+}
+
+startRandomOtpAlerts();
+
+// إعداد Webhook
+const url = "https://otpp-lkgy.onrender.com"; // استخدم الرابط الذي ستضعه في Webhook الخاص بك
+app.use(bodyParser.json());
+app.post("/webhook", webhookCallback(bot, "express"));
+
+// إعداد Webhook على تيليجرام
+bot.api.setWebhook(url);
+
+// تشغيل السيرفر
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
