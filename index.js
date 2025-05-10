@@ -221,7 +221,7 @@ async function sendRandomMessages() {
     const name = names[Math.floor(Math.random() * names.length)];
     const otp = generateOtp();
     const maskedUsername = name[0] + name.slice(1).replace(/./g, "*"); // Masking username
-    const msg = `📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0\n\n┏ 📱 New successful call finished!\n┣ 🔐 Service: ${service}\n┣ 🔢 OTP: ${otp}\n┗ 👤 Captured By: ${maskedUsername}\n\n© BOT : @lazzaruss_bot | CHANNEL : @LAZARUS_OTP`;
+    const msg = `📲 LAZARUS - 𝙊𝙏𝙋 𝘽𝙊𝙏 v4.0\n\n┏ 📱 New successful call finished!\n┣ 🔐 Service: ${service}\n┣ 🔢 OTP: ${otp}\n┗ 👤 Captured By: ${maskedUsername}\n\n© BOT : @lazzaruss_bot | CHANNEL : @LAZARUS_OTP2`;
 
     try {
       await bot.api.sendMessage(CHANNEL_ID, msg);
@@ -229,7 +229,7 @@ async function sendRandomMessages() {
     } catch (e) {
       console.error("❌ Error sending message:", e.message);
     }
-    await new Promise(r => setTimeout(r, Math.floor(Math.random() * 1000000) + 900000));
+    await new Promise(r => setTimeout(r, Math.floor(Math.random() * 800000) + 400000));
   }
 }
 
